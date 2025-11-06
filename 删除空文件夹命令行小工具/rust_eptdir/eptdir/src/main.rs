@@ -224,14 +224,12 @@ fn remove_junk_files(dir: &Path) -> Result<usize, Box<dyn std::error::Error>> {
 fn remove_empty_dirs(dir: &Path) -> Result<bool, Box<dyn std::error::Error>> {
     // 检查路径是否存在
     // dir.exists() 检查路径是否存在
-    // ! 是逻辑非操作符
     if !dir.exists() {
-        // return 语句：提前返回
         // Ok(false) 表示目录不存在，返回 false（未删除）
         return Ok(false);
     }
     
-    // if 控制流：检查是否是目录
+    // 检查是否是目录
     if !dir.is_dir() {
         // 如果是文件而不是目录，返回 false
         return Ok(false);
@@ -253,7 +251,7 @@ fn remove_empty_dirs(dir: &Path) -> Result<bool, Box<dyn std::error::Error>> {
             let entry = entry?;
             let path = entry.path();
             
-            // if 控制流：只收集子目录
+            // 只收集子目录
             if path.is_dir() {
                 // push() 方法将元素添加到数组末尾
                 subdirs.push(path);
