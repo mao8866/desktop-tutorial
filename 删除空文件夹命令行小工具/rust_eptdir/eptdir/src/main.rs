@@ -8,21 +8,30 @@ use std::env;
 
 const JUNK_FILES: &[&str] = &["thumbs.db", ".DS_Store"];
 fn main() {
-    // 获取当前程序启动时转入的命令行参数。args[0] 是程序名本身,args[1] 是第一个参数，以此类推
+    // 获取当前程序启动时转入的命令行参数。
     let args: Vec<String> = env::args().collect();
     // println!("{:?}", args);["target\\debug\\eptdir.exe", "D:\\桌面\\草稿"]
 
     // 如果命令行有参数
     let target_dirs: Vec<PathBuf> = if args.len() > 1 {
+    // args[0] 通常是程序的名称，因此从 args[1] 开始就是用户传入的路径参数
+    // 闭包 是匿名的，可以捕获和使用定义它时所在作用域中的变量。
+    // 函数 是命名的，不能直接捕获外部变量，除非通过传递参数的方式。
+    // |s|闭包参数定义,配合map(),把迭代进来的每一个参数(&String类型)转换路径类型
         args[1..].iter().map(|s| PathBuf::from(s)).collect()
     } else {
-        // 如果没有参数，使用当前目录
-        // env::current_dir() 获取当前工作目录,expect() 如果出错就打印消息并终止程序
+        // env::current_dir() 获取当前工作目录
+        // env“程序运行时的环境接口”,用来获取或修改环境信息,expect() 如果出错就打印消息并终止程序
         // vec![] 宏创建一个包含单个元素的向量
         vec![env::current_dir().expect("无法获取当前目录")]
+        //vec![]类似java创建数组:
+        //List<String> list = new ArrayList<>();
+        //list.add("hello");
+
     };
 
     //检查目录是否存在
+    // .len()，它返回的是向量中元素的个数（有几个路径）
     if target_dirs.len() == 1 {
         println!("正在清理 1 个目录...");
     } else {
@@ -33,8 +42,7 @@ fn main() {
     let mut success_count = 0;
     let mut error_count = 0;
 
-    // for 循环：遍历所有目标目录
-    // enumerate() 方法返回 (索引, 值) 的元组
+    //遍历所有目标目录,enumerate() 方法返回 (索引, 值) 的元组
     for (index, target_dir) in target_dirs.iter().enumerate() {
         // 如果有多个目录，显示当前处理的目录编号
         if target_dirs.len() > 1 {
@@ -75,7 +83,7 @@ fn main() {
 
 
 fn clean_directory(target_dir: &Path) -> Result<(), Box<dyn std::error::Error>> {
-    // if 控制流：检查目录是否存在
+    //检查目录是否存在
     if !target_dir.exists() {
         // eprintln! 是错误输出宏
         eprintln!("警告: 目录不存在，跳过: {}", target_dir.display());

@@ -1,0 +1,43 @@
+{
+    // 使用 IntelliSense 了解相关属性。 
+    // 悬停以查看现有属性的描述。
+    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+
+        {
+            "name": "Debug eptdir",
+            "type": "lldb",
+            "request": "launch",
+            // 编译后的可执行文件路径（相对于工作区根目录）
+            "program": "${workspaceFolder}/eptdir/target/debug/eptdir.exe",
+            // 命令行参数：每个参数作为数组的一个元素
+            // 修改这里的路径来测试不同的目录
+            "args": [
+                "D:\\桌面\\3",
+                "D:\\桌面\\1",
+                "D:\\桌面\\2"
+            ],
+            // 工作目录（程序运行时的工作目录）
+            "cwd": "${workspaceFolder}/eptdir",
+            // 在调试前自动构建项目
+            "preLaunchTask": "cargo-build",
+            // 使用集成终端显示输出
+            "console": "integratedTerminal",
+            // 停止程序入口时自动进入main函数
+            "stopOnEntry": false
+        },
+        {
+            "name": "Debug eptdir (自行设置)",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/eptdir/target/debug/eptdir.exe",
+            // 不传参数，程序会使用当前工作目录
+            "args": [],
+            "cwd": "${workspaceFolder}/eptdir",
+            "preLaunchTask": "cargo-build",
+            "console": "integratedTerminal",
+            "stopOnEntry": false
+        }
+    ]
+}

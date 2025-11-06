@@ -1,0 +1,47 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "cargo-build",
+            "type": "shell",
+            "command": "cargo",
+            "args": [
+                "build",
+                "--manifest-path",
+                "${workspaceFolder}/eptdir/Cargo.toml"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared"
+            },
+            "problemMatcher": [
+                "$rustc"
+            ]
+        },
+        {
+            "label": "cargo-build-release",
+            "type": "shell",
+            "command": "cargo",
+            "args": [
+                "build",
+                "--release",
+                "--manifest-path",
+                "${workspaceFolder}/eptdir/Cargo.toml"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": [
+                "$rustc"
+            ]
+        }
+    ]
+}
+
+
