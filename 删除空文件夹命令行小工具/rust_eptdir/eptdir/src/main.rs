@@ -82,6 +82,12 @@ fn main() {
 }
 
 
+// 函数返回类型说明：
+// Result<(), Box<dyn std::error::Error>>
+//   - Result: Rust 的错误处理类型，表示可能成功或失败
+//   - (): 单元类型，表示成功时不需要返回值（只有成功/失败的状态）
+//   - Box<dyn std::error::Error>: 失败时盒子里是任意类型的错误对象
+//     * Box: 堆分配的智能指针，用于存储不同大小的错误对象
 fn clean_directory(target_dir: &Path) -> Result<(), Box<dyn std::error::Error>> {
     //检查目录是否存在
     if !target_dir.exists() {
@@ -124,7 +130,7 @@ fn clean_directory(target_dir: &Path) -> Result<(), Box<dyn std::error::Error>> 
     
     // match 表达式：模式匹配 Result 类型
     match remove_empty_dirs(target_dir) {
-        // Ok 分支：成功（我们不关心返回值，用 _ 忽略）
+        // Ok 分支：成功（不关心返回值，用 _ 忽略）
         Ok(_) => {
             println!("空文件夹清理完成");
         }
@@ -143,42 +149,47 @@ fn clean_directory(target_dir: &Path) -> Result<(), Box<dyn std::error::Error>> 
 }
 
 
+// 第一阶段：删除垃圾文件（深度优先，从外到内）
 fn remove_junk_files(dir: &Path) -> Result<usize, Box<dyn std::error::Error>> {
     // mut 关键字表示这个变量可以修改（可变变量）
     // usize 是 Rust 中的无符号整数类型，用于计数
     let mut deleted_count = 0;
-    
-    // 读取目录内容
-    // fs::read_dir(dir) 返回 Result<ReadDir, Error>
+
+    // fs::read_dir(dir) 读取目录内容返回 Result<ReadDir, Error>
     // ? 操作符：如果出错就立即返回错误，如果成功就继续执行
-    // 这是 Rust 中处理错误的常用方式
     let entries = fs::read_dir(dir)?;
     
+
+    // 第一阶段：先删除垃圾文件（深度优先，从外到内）
     // entries 是一个迭代器，可以逐个访问目录中的文件/文件夹
     for entry in entries {
-        // 再次使用 ? 操作符处理可能的错误
-        // entry 的类型是 Result<DirEntry, Error>，需要先解包
+        // entry 的类型是 Result<DirEntry
+        // 使用 ? 操作符：如果 entry 是 Err，就返回错误；如果是 Ok，则取出 DirEntry
         let entry = entry?;
         
         // entry.path() 获取这个条目的完整路径
         // path 的类型是 PathBuf（可变的路径类型）
         let path = entry.path();
         
-        // if 控制流：判断是文件还是目录
-        // path.is_file() 检查路径是否是文件
+        //检查路径是否是文件，只处理文件，跳过目录
         if path.is_file() {
+
             // 获取文件名
             // path.file_name() 返回 Option<&OsStr>
-            // Option 是 Rust 中的可选值类型，要么是 Some(值)，要么是 None
-            // if let 是模式匹配，如果 file_name 是 Some，就进入这个分支
+            // Option 表示可能没有值（None）或有值（Some(值)）
+            // if let Some(file_name) = ... 如果是 Some，将值绑定到 file_name；如果是 None，跳过
+            // 这里处理路径可能没有文件名的情况
             if let Some(file_name) = path.file_name() {
+
                 // file_name 是 &OsStr 类型，需要转换为字符串
                 // to_str() 返回 Option<&str>，因为文件名可能包含无效的 UTF-8
                 if let Some(name_str) = file_name.to_str() {
+
                     // name_str 现在是 &str 类型（字符串切片）
                     // JUNK_FILES.contains(&name_str) 检查文件名是否在垃圾文件列表中
                     // &name_str 创建一个引用，因为 contains 需要引用类型
                     if JUNK_FILES.contains(&name_str) {
+
                         // 打印要删除的文件路径
                         // path.display() 将路径转换为可显示的字符串
                         println!("删除垃圾文件: {}", path.display());
@@ -194,7 +205,7 @@ fn remove_junk_files(dir: &Path) -> Result<usize, Box<dyn std::error::Error>> {
                 }
             }
         }
-        // else if 控制流：如果是目录，递归处理
+        //如果是目录，递归处理
         else if path.is_dir() {
             // 递归调用：自己调用自己
             // 这就是递归函数的核心：函数调用自己来处理子目录
@@ -211,7 +222,7 @@ fn remove_junk_files(dir: &Path) -> Result<usize, Box<dyn std::error::Error>> {
 
 
 fn remove_empty_dirs(dir: &Path) -> Result<bool, Box<dyn std::error::Error>> {
-    // if 控制流：检查路径是否存在
+    // 检查路径是否存在
     // dir.exists() 检查路径是否存在
     // ! 是逻辑非操作符
     if !dir.exists() {
