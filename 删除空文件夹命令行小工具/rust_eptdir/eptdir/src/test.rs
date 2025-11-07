@@ -275,7 +275,7 @@ mod tests {
         fs::remove_dir_all(&test_dir).ok();
     }
 
-    // 测试不存在的目录应该返回 Ok（跳过）
+    // 测试不存在的目录应该返回Ok同时跳过
     #[test]
     fn test_clean_directory_nonexistent() {
         // 测试不存在的目录应该返回 Ok（跳过）
@@ -286,7 +286,7 @@ mod tests {
         assert!(result.is_ok());
     }
     
-    // 测试如果路径是文件而不是目录，应该返回 Ok（跳过）
+    // 测试如果路径是文件而不是目录，应该返回Ok但跳过这个路径
     #[test]
     fn test_clean_directory_not_a_dir() {
         let test_dir = create_test_dir();
