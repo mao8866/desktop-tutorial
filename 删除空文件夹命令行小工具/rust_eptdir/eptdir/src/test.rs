@@ -59,9 +59,10 @@ mod tests {
         // 执行被测试的函数
         let result = remove_junk_files(&test_dir);
         // assert! 宏：如果条件为 false，测试失败
-        assert!(result.is_ok(), "函数执行成功");
+        // 注意：这里的消息是在断言失败（panic）时显示的，所以应该描述"期望什么但实际失败了"
+        assert!(result.is_ok(), "期望函数执行成功，但实际失败了");
         // 验证文件确实被删除（不仅检查返回值，还检查实际文件系统状态）
-        assert!(!junk_file.exists(), "thumbs.db 文件被删除");
+        assert!(!junk_file.exists(), "期望thumbs.db文件被删除，但文件仍然存在");
         // 清理删除测试目录
         fs::remove_dir_all(&test_dir).ok();
     }
@@ -77,9 +78,10 @@ mod tests {
         let result = remove_junk_files(&test_dir);
         // 检查操作是否成功执行，并验证删除的文件数量
         // expect 会在出错时 panic，assert_eq! 会验证返回值是否正确
-        assert_eq!(result.expect("删除文件失败"), 1, "删除 1 个.DS_Store 文件");
+        let deleted_count = result.expect("删除文件失败");
+        assert_eq!(deleted_count, 1, "期望删除1个.DS_Store文件，但实际删除了{}个", deleted_count);
         // 验证文件确实被删除（不仅检查返回值，还检查实际文件系统状态）
-        assert!(!junk_file.exists(), ".DS_Store文件被删除");
+        assert!(!junk_file.exists(), "期望.DS_Store文件被删除，但文件仍然存在");
         
         // 清理删除测试目录
         fs::remove_dir_all(&test_dir).ok();
@@ -98,11 +100,12 @@ mod tests {
         let result = remove_junk_files(&test_dir);
         // result.is_ok() 检查操作是否成功执行（没有出错）
         // 注意：Ok 只表示"执行成功"，不表示"删除了文件"
-        assert!(result.is_ok());
+        assert!(result.is_ok(), "期望函数执行成功，但实际失败了");
         // Ok(0) = 成功执行 + 删除了 0 个文件
-        assert_eq!(result.unwrap(), 0, "普通文件目录返回 0");
+        let deleted_count = result.unwrap();
+        assert_eq!(deleted_count, 0, "期望普通文件目录返回0，但实际返回了{}", deleted_count);
         // 普通文件还在
-        assert!(normal_file.exists(), "普通文件保留");
+        assert!(normal_file.exists(), "期望普通文件保留，但文件不存在");
         fs::remove_dir_all(&test_dir).ok();
     }
     
@@ -127,16 +130,17 @@ mod tests {
         fs::File::create(&junk_file2).unwrap();
         
         let result = remove_junk_files(&test_dir);
-        assert!(result.is_ok());
+        assert!(result.is_ok(), "期望函数执行成功，但实际失败了");
         // 应该递归删除 2 个垃圾文件（1个在主目录，1个在子目录）
         //assert_eq! 的作用
         // 如果 result.unwrap() == 2：断言通过，测试继续
         // 如果不等于 2：断言失败，测试失败并显示期望值与实际值
-        assert_eq!(result.unwrap(), 2, "递归删除返回 2");
+        let deleted_count = result.unwrap();
+        assert_eq!(deleted_count, 2, "期望递归删除返回2，但实际返回了{}", deleted_count);
         
         // 验证文件确实被删除（不仅检查返回值，还检查实际文件系统状态）
-        assert!(!junk_file.exists(), "子目录中的垃圾文件被删除");
-        assert!(!junk_file2.exists(), "主目录中的垃圾文件被删除");
+        assert!(!junk_file.exists(), "期望子目录中的垃圾文件被删除，但文件仍然存在");
+        assert!(!junk_file2.exists(), "期望主目录中的垃圾文件被删除，但文件仍然存在");
         
         fs::remove_dir_all(&test_dir).ok();
     }
@@ -148,8 +152,9 @@ mod tests {
         let test_dir = create_test_dir();
         
         let result = remove_junk_files(&test_dir);
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), 0, "空目录返回 0");
+        assert!(result.is_ok(), "期望函数执行成功，但实际失败了");
+        let deleted_count = result.unwrap();
+        assert_eq!(deleted_count, 0, "期望空目录返回0，但实际返回了{}", deleted_count);
         
         fs::remove_dir_all(&test_dir).ok();
     }
@@ -170,11 +175,11 @@ mod tests {
         fs::create_dir(&empty_subdir).unwrap();
         
         let result = remove_empty_dirs(&test_dir);
-        assert!(result.is_ok());
+        assert!(result.is_ok(), "期望函数执行成功，但实际失败了");
         // 空子目录应该被删除
-        assert!(!empty_subdir.exists(), "空子目录被删除");
+        assert!(!empty_subdir.exists(), "期望空子目录被删除，但目录仍然存在");
         // 主目录还在（因为有标记文件）
-        assert!(test_dir.exists(), "主目录成功保留");
+        assert!(test_dir.exists(), "期望主目录保留，但目录不存在");
         
         fs::remove_dir_all(&test_dir).ok();
     }
@@ -195,13 +200,13 @@ mod tests {
         fs::create_dir_all(&subdir3).unwrap();
         
         let result = remove_empty_dirs(&test_dir);
-        assert!(result.is_ok());
+        assert!(result.is_ok(), "期望函数执行成功，但实际失败了");
         // 所有嵌套的空目录都应该被删除
-        assert!(!subdir3.exists());
-        assert!(!subdir2.exists());
-        assert!(!subdir1.exists());
+        assert!(!subdir3.exists(), "期望subdir3被删除，但目录仍然存在");
+        assert!(!subdir2.exists(), "期望subdir2被删除，但目录仍然存在");
+        assert!(!subdir1.exists(), "期望subdir1被删除，但目录仍然存在");
         // 主目录应该还在（因为有标记文件）
-        assert!(test_dir.exists(), "主目录保留");
+        assert!(test_dir.exists(), "期望主目录保留，但目录不存在");
         
         fs::remove_dir_all(&test_dir).ok();
     }
@@ -222,9 +227,9 @@ mod tests {
         fs::File::create(&file).unwrap();
         
         let result = remove_empty_dirs(&test_dir);
-        assert!(result.is_ok());
+        assert!(result.is_ok(), "期望函数执行成功，但实际失败了");
         // 因为有文件，子目录不应该被删除
-        assert!(subdir.exists(), "有文件的目录保留");
+        assert!(subdir.exists(), "期望有文件的目录保留，但目录不存在");
         
         fs::remove_dir_all(&test_dir).ok();
     }
@@ -235,8 +240,9 @@ mod tests {
         // 创建一个路径对象，该路径在文件系统中不存在
         let nonexistent = PathBuf::from("/nonexistent/path/that/does/not/exist");
         let result = remove_empty_dirs(&nonexistent);
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), false, "不存在的目录返回 false");
+        assert!(result.is_ok(), "期望函数执行成功，但实际失败了");
+        let removed = result.unwrap();
+        assert_eq!(removed, false, "期望不存在的目录返回false，但实际返回了{}", removed);
     }
     
 
@@ -263,14 +269,14 @@ mod tests {
         
         // 执行清理
         let result = clean_directory(&test_dir);
-        assert!(result.is_ok(), "清理目录成功");
+        assert!(result.is_ok(), "期望清理目录成功，但实际失败了");
         
         // 验证结果
-        assert!(!junk_file.exists(), "垃圾文件被删除");
-        assert!(normal_file.exists(), "普通文件保留");
-        assert!(!empty_subdir.exists(), "空目录被删除");
+        assert!(!junk_file.exists(), "期望垃圾文件被删除，但文件仍然存在");
+        assert!(normal_file.exists(), "期望普通文件保留，但文件不存在");
+        assert!(!empty_subdir.exists(), "期望空目录被删除，但目录仍然存在");
         // 主目录应该还在（因为有普通文件）
-        assert!(test_dir.exists(), "主目录保留");
+        assert!(test_dir.exists(), "期望主目录保留，但目录不存在");
         
         fs::remove_dir_all(&test_dir).ok();
     }
@@ -283,7 +289,7 @@ mod tests {
         
         let result = clean_directory(&nonexistent);
         // 根据代码逻辑，不存在的目录会返回 Ok(())
-        assert!(result.is_ok());
+        assert!(result.is_ok(), "期望函数执行成功，但实际失败了");
     }
     
     // 测试如果路径是文件而不是目录，应该返回Ok但跳过这个路径
@@ -295,7 +301,7 @@ mod tests {
         
         let result = clean_directory(&test_file);
         // 根据代码逻辑，文件路径会返回 Ok(())
-        assert!(result.is_ok());
+        assert!(result.is_ok(), "期望函数执行成功，但实际失败了");
         
         fs::remove_dir_all(&test_dir).ok();
     }
